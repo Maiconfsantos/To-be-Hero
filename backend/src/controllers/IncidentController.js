@@ -19,5 +19,29 @@ module.exports = {
         const incidents = await connection('incidents').select('*');
 
         return response.json(incidents);
+    },
+
+    async delete(request, response){
+        const { id } = request.params;
+
+        const ong_id = request.headers.authorization;
+
+        const incident = await connection('incidents')
+            .where('id',id)
+            .select('ong_id')
+            .first();
+
+        if (!incident){
+            return response.status(406).json({ error: "Incident dont exist" });
+        }
+        if(ong_id != incident.ong_id) {
+            return response.status(401).json({ error: 'Operation not permitted.' });
+        }
+
+        await connection('incidents')
+            .where('id',id)
+            .delete();
+        
+        return response.status(204).send();
     }
 };
